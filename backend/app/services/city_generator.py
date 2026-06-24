@@ -1,0 +1,124 @@
+import hashlib
+import math
+from dataclasses import dataclass
+
+from app.services.instagram.base import InstagramAccountData, InstagramStatsData
+
+
+@dataclass(frozen=True)
+class GeneratedBuilding:
+    building_type: str
+    district: str
+    height: float
+    width: float
+    depth: float
+    floors: int
+    glow_intensity: float
+    material_style: str
+    position_x: float
+    position_y: float
+    position_z: float
+    color_palette: list[str]
+
+
+def clamp(value: float, minimum: float, maximum: float) -> float:
+    return max(minimum, min(maximum, value))
+
+
+def engagement_rate(avg_likes: int, avg_comments: int, followers: int) -> float:
+    if followers <= 0:
+        return 0
+    return round(((avg_likes + avg_comments) / followers) * 100, 2)
+
+
+def building_type_for_followers(followers: int) -> str:
+    if followers < 1_000:
+        return "Small House"
+    if followers < 10_000:
+        return "Creator Studio"
+    if followers < 50_000:
+        return "Apartment Tower"
+    if followers < 250_000:
+        return "Skyscraper"
+    if followers < 1_000_000:
+        return "Landmark Tower"
+    return "Iconic Mega Tower"
+
+
+def district_for_category(category: str | None) -> str:
+    value = (category or "").lower()
+    if any(word in value for word in ["tech", "software", "startup"]):
+        return "Tech"
+    if any(word in value for word in ["fashion", "style", "model"]):
+        return "Fashion"
+    if any(word in value for word in ["food", "cook", "cafe", "restaurant"]):
+        return "Food"
+    if any(word in value for word in ["travel", "hotel", "airport"]):
+        return "Travel"
+    if any(word in value for word in ["gaming", "game", "esports"]):
+        return "Gaming"
+    if any(word in value for word in ["music", "concert", "artist band"]):
+        return "Music"
+    if any(word in value for word in ["art", "museum", "gallery", "visual"]):
+        return "Art"
+    return "Default"
+
+
+def material_style_for_engagement(rate: float) -> str:
+    if rate >= 8:
+        return "premium-glass"
+    if rate >= 4:
+        return "polished-metal"
+    if rate >= 2:
+        return "clean-concrete"
+    return "matte"
+
+
+def palette_for_district(district: str) -> list[str]:
+    palettes = {
+        "Tech": ["#79ffe1", "#6ea8fe", "#d6f5ff"],
+        "Fashion": ["#ffd1dc", "#f4c430", "#111827"],
+        "Food": ["#ffb703", "#2a9d8f", "#fef3c7"],
+        "Travel": ["#90e0ef", "#f77f00", "#caf0f8"],
+        "Gaming": ["#00f5d4", "#ff006e", "#3a0ca3"],
+        "Music": ["#f72585", "#4cc9f0", "#111827"],
+        "Art": ["#fb5607", "#8338ec", "#ffbe0b"],
+        "Default": ["#94a3b8", "#19c2a0", "#1f2937"],
+    }
+    return palettes.get(district, palettes["Default"])
+
+
+def stable_grid_position(instagram_user_id: str) -> tuple[float, float]:
+    digest = hashlib.sha256(instagram_user_id.encode("utf-8")).hexdigest()
+    raw = int(digest[:12], 16)
+    grid_size = 22
+    spacing = 30
+    x_cell = raw % grid_size
+    z_cell = (raw // grid_size) % grid_size
+    center = (grid_size - 1) / 2
+    return (x_cell - center) * spacing, (z_cell - center) * spacing
+
+
+def generate_building(account: InstagramAccountData, stats: InstagramStatsData) -> GeneratedBuilding:
+    followers = stats.followers_count
+    height = round(clamp(math.log10(followers + 1) * 8, 4, 80), 2)
+    width = round(clamp(math.log10(stats.avg_likes + 1) * 3, 3, 18), 2)
+    floors = int(clamp(stats.media_count / 10, 1, 60))
+    glow = round(clamp(math.log10(stats.avg_views + 1) / 6, 0.1, 1), 2)
+    rate = engagement_rate(stats.avg_likes, stats.avg_comments, followers)
+    district = district_for_category(account.category)
+    x, z = stable_grid_position(account.instagram_user_id)
+    return GeneratedBuilding(
+        building_type=building_type_for_followers(followers),
+        district=district,
+        height=height,
+        width=width,
+        depth=width,
+        floors=floors,
+        glow_intensity=glow,
+        material_style=material_style_for_engagement(rate),
+        position_x=x,
+        position_y=height / 2,
+        position_z=z,
+        color_palette=palette_for_district(district),
+    )

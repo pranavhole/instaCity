@@ -1,0 +1,104 @@
+from app.services.city_generator import (
+    building_type_for_followers,
+    district_for_category,
+    engagement_rate,
+    generate_building,
+)
+from app.services.instagram.base import InstagramAccountData, InstagramStatsData
+
+
+def account(instagram_user_id: str = "creator-001", category: str | None = "Tech") -> InstagramAccountData:
+    return InstagramAccountData(
+        instagram_user_id=instagram_user_id,
+        username="creator",
+        profile_picture_url=None,
+        account_type="BUSINESS",
+        category=category,
+    )
+
+
+def stats(
+    followers: int = 12500,
+    media_count: int = 160,
+    avg_likes: int = 900,
+    avg_comments: int = 45,
+    avg_views: int = 12000,
+    reels_count: int = 14,
+) -> InstagramStatsData:
+    return InstagramStatsData(
+        followers_count=followers,
+        follows_count=400,
+        media_count=media_count,
+        avg_likes=avg_likes,
+        avg_comments=avg_comments,
+        avg_views=avg_views,
+        reels_count=reels_count,
+    )
+
+
+def test_building_tier_thresholds() -> None:
+    assert building_type_for_followers(999) == "Small House"
+    assert building_type_for_followers(1_000) == "Creator Studio"
+    assert building_type_for_followers(10_000) == "Apartment Tower"
+    assert building_type_for_followers(50_000) == "Skyscraper"
+    assert building_type_for_followers(250_000) == "Landmark Tower"
+    assert building_type_for_followers(1_000_000) == "Iconic Mega Tower"
+
+
+def test_metric_formulas_are_clamped() -> None:
+    generated = generate_building(
+        account(instagram_user_id="tiny"),
+        stats(followers=0, media_count=0, avg_likes=0, avg_views=0),
+    )
+
+    assert generated.height == 4
+    assert generated.width == 3
+    assert generated.depth == 3
+    assert generated.floors == 1
+    assert generated.glow_intensity == 0.1
+
+    generated = generate_building(
+        account(instagram_user_id="huge"),
+        stats(
+            followers=10_000_000_000,
+            media_count=10_000,
+            avg_likes=10_000_000,
+            avg_views=10_000_000_000,
+        ),
+    )
+
+    assert generated.height == 80
+    assert generated.width == 18
+    assert generated.depth == 18
+    assert generated.floors == 60
+    assert generated.glow_intensity == 1
+
+
+def test_zero_followers_engagement_is_zero() -> None:
+    assert engagement_rate(avg_likes=50, avg_comments=10, followers=0) == 0
+
+
+def test_same_instagram_id_gets_same_position() -> None:
+    first = generate_building(account(instagram_user_id="stable-id"), stats())
+    second = generate_building(account(instagram_user_id="stable-id"), stats(avg_likes=2200))
+
+    assert first.position_x == second.position_x
+    assert first.position_z == second.position_z
+
+
+def test_different_ids_use_different_grid_cells() -> None:
+    first = generate_building(account(instagram_user_id="stable-id-a"), stats())
+    second = generate_building(account(instagram_user_id="stable-id-b"), stats())
+
+    assert (first.position_x, first.position_z) != (second.position_x, second.position_z)
+
+
+def test_district_maps_category_keywords() -> None:
+    assert district_for_category("software creator") == "Tech"
+    assert district_for_category("fashion model") == "Fashion"
+    assert district_for_category("home cooking") == "Food"
+    assert district_for_category("travel blogger") == "Travel"
+    assert district_for_category("gaming video creator") == "Gaming"
+    assert district_for_category("independent music") == "Music"
+    assert district_for_category("visual artist") == "Art"
+    assert district_for_category(None) == "Default"

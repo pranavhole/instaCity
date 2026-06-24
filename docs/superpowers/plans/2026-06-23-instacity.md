@@ -197,7 +197,7 @@ alembic==1.13.2
 cryptography==42.0.8
 fastapi==0.111.0
 httpx==0.27.0
-psycopg[binary]==3.2.1
+psycopg[binary]==3.2.13
 pydantic-settings==2.3.4
 pytest==8.2.2
 pytest-asyncio==0.23.7
@@ -217,32 +217,35 @@ Create `frontend/package.json`:
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-three/drei": "^9.108.3",
-    "@react-three/fiber": "^8.16.8",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@tanstack/react-query": "^5.51.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
-    "next": "^14.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "three": "^0.166.1",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@types/three": "^0.166.0",
     "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.5",
-    "postcss": "^8.4.39",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.9",
+    "postcss": "^8.5.15",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.15"
   }
 }
 ```
