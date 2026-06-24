@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   backend:
     build: ./backend
@@ -39,7 +39,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
     volumes:
