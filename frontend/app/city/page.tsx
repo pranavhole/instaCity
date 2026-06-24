@@ -36,7 +36,7 @@ export default function CityPage() {
           <CityScene buildings={buildings} />
           <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-lg border border-white/10 bg-[#101820]/85 p-4 text-sm text-slate-200 shadow-glow backdrop-blur">
             <Link href="/dashboard" className="pointer-events-auto font-semibold text-signal">Dashboard</Link>
-            <div className="mt-2 text-xs text-slate-400">Click city to lock mouse. WASD fly, Space climb, Shift descend.</div>
+            <div className="mt-2 text-xs text-slate-400">Click city to lock mouse. WASD fly. Space or E climbs; Shift or Q descends.</div>
           </div>
           <Minimap buildings={buildings} />
           <ProfileModal />

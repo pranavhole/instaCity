@@ -4,41 +4,27 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+import { advancePlaneFlight, flightKeyForCode, type FlightKeyState, type PlaneFlightState } from "@/lib/flight-controls";
 import { useCityStore } from "@/stores/cityStore";
-
-type KeyState = {
-  forward: boolean;
-  backward: boolean;
-  left: boolean;
-  right: boolean;
-  up: boolean;
-  down: boolean;
-};
-
-const CITY_BOUND = 410;
 
 export function PlaneController() {
   const group = useRef<THREE.Group>(null);
-  const heading = useRef(Math.PI);
-  const position = useRef(new THREE.Vector3(0, 18, 90));
-  const keys = useRef<KeyState>({ forward: false, backward: false, left: false, right: false, up: false, down: false });
+  const plane = useRef<PlaneFlightState>({ x: 0, y: 18, z: 90, heading: Math.PI });
+  const keys = useRef<FlightKeyState>({ forward: false, backward: false, left: false, right: false, up: false, down: false });
   const setPlane = useCityStore((state) => state.setPlane);
   const gl = useThree((state) => state.gl);
 
   useEffect(() => {
     function key(event: KeyboardEvent, value: boolean) {
-      const code = event.code;
-      if (code === "KeyW") keys.current.forward = value;
-      if (code === "KeyS") keys.current.backward = value;
-      if (code === "KeyA") keys.current.left = value;
-      if (code === "KeyD") keys.current.right = value;
-      if (code === "Space") keys.current.up = value;
-      if (code === "ShiftLeft" || code === "ShiftRight") keys.current.down = value;
+      const action = flightKeyForCode(event.code);
+      if (!action) return;
+      event.preventDefault();
+      keys.current[action] = value;
     }
 
     function mouse(event: MouseEvent) {
       if (document.pointerLockElement === gl.domElement) {
-        heading.current -= event.movementX * 0.0022;
+        plane.current.heading -= event.movementX * 0.0022;
       }
     }
 
@@ -61,27 +47,14 @@ export function PlaneController() {
   }, [gl.domElement]);
 
   useFrame((_, delta) => {
-    const turnSpeed = 1.45 * delta;
-    const moveSpeed = 46 * delta;
-    const verticalSpeed = 26 * delta;
-    if (keys.current.left) heading.current += turnSpeed;
-    if (keys.current.right) heading.current -= turnSpeed;
-
-    const direction = new THREE.Vector3(Math.sin(heading.current), 0, Math.cos(heading.current));
-    if (keys.current.forward) position.current.addScaledVector(direction, moveSpeed);
-    if (keys.current.backward) position.current.addScaledVector(direction, -moveSpeed * 0.6);
-    if (keys.current.up) position.current.y += verticalSpeed;
-    if (keys.current.down) position.current.y -= verticalSpeed;
-
-    position.current.x = THREE.MathUtils.clamp(position.current.x, -CITY_BOUND, CITY_BOUND);
-    position.current.y = THREE.MathUtils.clamp(position.current.y, 8, 120);
-    position.current.z = THREE.MathUtils.clamp(position.current.z, -CITY_BOUND, CITY_BOUND);
+    const frame = advancePlaneFlight(plane.current, keys.current, delta);
+    plane.current = { x: frame.x, y: frame.y, z: frame.z, heading: frame.heading };
 
     if (group.current) {
-      group.current.position.copy(position.current);
-      group.current.rotation.set(0.08, heading.current, keys.current.left ? 0.22 : keys.current.right ? -0.22 : 0);
+      group.current.position.set(frame.x, frame.y, frame.z);
+      group.current.rotation.set(frame.pitch, frame.heading, frame.roll);
     }
-    setPlane({ x: position.current.x, y: position.current.y, z: position.current.z, heading: heading.current });
+    setPlane(plane.current);
   });
 
   return (
