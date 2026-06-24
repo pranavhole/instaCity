@@ -22,6 +22,7 @@ def test_mock_login_returns_redirect_url() -> None:
 
     assert response.status_code == 200
     assert response.json()["redirect_url"].startswith("http://localhost:8000/auth/instagram/callback")
+    assert "instacity_oauth_state" in response.headers["set-cookie"]
 
 
 def test_users_me_requires_session() -> None:

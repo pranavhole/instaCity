@@ -1,6 +1,6 @@
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -15,6 +15,7 @@ from app.services.instagram.mock_provider import MockInstagramProvider
 from app.services.token_service import SESSION_COOKIE_NAME, create_session_token, encrypt_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+OAUTH_STATE_COOKIE_NAME = "instacity_oauth_state"
 
 
 def get_instagram_provider(settings: Settings):
@@ -26,10 +27,19 @@ def get_instagram_provider(settings: Settings):
 
 
 @router.get("/instagram/login", response_model=LoginUrlResponse)
-def instagram_login(settings: Settings = Depends(get_settings)) -> LoginUrlResponse:
+def instagram_login(response: Response, settings: Settings = Depends(get_settings)) -> LoginUrlResponse:
     provider = get_instagram_provider(settings)
+    state = secrets.token_urlsafe(16)
+    response.set_cookie(
+        OAUTH_STATE_COOKIE_NAME,
+        state,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=10 * 60,
+    )
     try:
-        return LoginUrlResponse(redirect_url=provider.get_login_url(secrets.token_urlsafe(16)))
+        return LoginUrlResponse(redirect_url=provider.get_login_url(state))
     except ProviderConfigurationError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
@@ -37,9 +47,14 @@ def instagram_login(settings: Settings = Depends(get_settings)) -> LoginUrlRespo
 @router.get("/instagram/callback")
 async def instagram_callback(
     code: str = Query(...),
+    state: str = Query(...),
+    stored_state: str | None = Cookie(default=None, alias=OAUTH_STATE_COOKIE_NAME),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
+    if not stored_state or not secrets.compare_digest(state, stored_state):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state")
+
     provider = get_instagram_provider(settings)
     try:
         access_token = await provider.exchange_code(code)
@@ -53,6 +68,7 @@ async def instagram_callback(
     db.commit()
 
     response = RedirectResponse(f"{settings.frontend_url}/dashboard", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(OAUTH_STATE_COOKIE_NAME)
     response.set_cookie(
         SESSION_COOKIE_NAME,
         create_session_token(user.id, settings.session_secret),
