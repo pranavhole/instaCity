@@ -4,14 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { AccountCard } from "@/components/dashboard/AccountCard";
 import { BuildingPreview } from "@/components/dashboard/BuildingPreview";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
+import { PublicInstagramSelector } from "@/components/instagram/PublicInstagramSelector";
 import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { getMe, getMyBuilding, getMyStats, syncInstagram } from "@/lib/api";
-import { startInstagramLogin } from "@/lib/auth";
 
 export default function DashboardPage() {
   const queryClient = useQueryClient();
@@ -39,10 +40,11 @@ export default function DashboardPage() {
   if (meQuery.isError) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-asphalt px-6">
-        <div className="max-w-md rounded-lg border border-white/10 bg-white/[0.06] p-6 text-center">
-          <h1 className="text-2xl font-bold text-white">Connect Instagram</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-300">Use the mock Instagram flow to create a local session and generate your city building.</p>
-          <Button onClick={() => void startInstagramLogin()} className="mt-6">Login with Instagram</Button>
+        <div className="w-full max-w-lg rounded-lg border border-white/10 bg-brand-panel/80 p-6 shadow-glow">
+          <BrandLogo compact className="mb-6 justify-center" />
+          <h1 className="text-center text-2xl font-bold text-white">Select a public profile</h1>
+          <p className="mt-3 text-center text-sm leading-6 text-slate-300">Build a city from a public profile URL or username.</p>
+          <PublicInstagramSelector className="mt-6" />
         </div>
       </main>
     );
@@ -56,13 +58,15 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl">
         <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <Link href="/" className="text-sm font-semibold text-signal">InstaCity</Link>
+            <Link href="/" aria-label="Oinsta City home">
+              <BrandLogo compact />
+            </Link>
             <h1 className="mt-2 text-4xl font-black text-white">Dashboard</h1>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
               <RefreshCw className={syncMutation.isPending ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              Sync Instagram Data
+              Rebuild From Cache
             </Button>
             <Link href="/city" className="inline-flex items-center rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
               Enter City

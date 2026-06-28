@@ -23,7 +23,9 @@ export function StatsGrid({ stats }: { stats: InstagramStats | null }) {
           <Card key={item.label} className="min-h-[132px]">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-sm text-slate-400">{item.label}</span>
-              <Icon className="h-5 w-5 text-signal" />
+              <span className="rounded-md bg-brand-gradient p-2">
+                <Icon className="h-4 w-4 text-white" />
+              </span>
             </div>
             <div className="text-3xl font-black text-white">{display}</div>
           </Card>

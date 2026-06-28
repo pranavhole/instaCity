@@ -102,3 +102,10 @@ def test_district_maps_category_keywords() -> None:
     assert district_for_category("independent music") == "Music"
     assert district_for_category("visual artist") == "Art"
     assert district_for_category(None) == "Default"
+
+
+def test_generated_building_palette_uses_oinsta_city_brand_colors() -> None:
+    generated = generate_building(account(category="fashion model"), stats())
+
+    assert "#ff2f87" in generated.color_palette
+    assert "#7c2be8" in generated.color_palette or "#ff7a45" in generated.color_palette

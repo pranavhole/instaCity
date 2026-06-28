@@ -76,14 +76,14 @@ def material_style_for_engagement(rate: float) -> str:
 
 def palette_for_district(district: str) -> list[str]:
     palettes = {
-        "Tech": ["#79ffe1", "#6ea8fe", "#d6f5ff"],
-        "Fashion": ["#ffd1dc", "#f4c430", "#111827"],
-        "Food": ["#ffb703", "#2a9d8f", "#fef3c7"],
-        "Travel": ["#90e0ef", "#f77f00", "#caf0f8"],
-        "Gaming": ["#00f5d4", "#ff006e", "#3a0ca3"],
-        "Music": ["#f72585", "#4cc9f0", "#111827"],
-        "Art": ["#fb5607", "#8338ec", "#ffbe0b"],
-        "Default": ["#94a3b8", "#19c2a0", "#1f2937"],
+        "Tech": ["#ff7a45", "#ff2f87", "#111326"],
+        "Fashion": ["#ff2f87", "#7c2be8", "#111326"],
+        "Food": ["#ffb15c", "#ff7a45", "#1a1d33"],
+        "Travel": ["#b238d8", "#ff7a45", "#090b18"],
+        "Gaming": ["#7c2be8", "#ff2f87", "#050712"],
+        "Music": ["#ff4fb0", "#b238d8", "#111326"],
+        "Art": ["#c45cff", "#ff2f87", "#1a1d33"],
+        "Default": ["#ff2f87", "#7c2be8", "#111326"],
     }
     return palettes.get(district, palettes["Default"])
 

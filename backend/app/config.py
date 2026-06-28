@@ -9,7 +9,9 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     backend_url: str = "http://localhost:8000"
     backend_cors_origins: str = "http://localhost:3000"
-    instagram_provider: str = "mock"
+    apify_api_token: str | None = None
+    apify_actor_id: str = "apify/instagram-scraper"
+    apify_results_limit: int = 100
     session_secret: str = "change-me"
     token_encryption_key: str = "local-dev-token-key-32-bytes-long"
 

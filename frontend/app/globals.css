@@ -14,7 +14,7 @@ html,
 body {
   min-height: 100%;
   margin: 0;
-  background: #0b1117;
+  background: #050712;
   color: #f8fafc;
 }
 
@@ -34,7 +34,7 @@ input {
 
 .city-grid {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(255, 47, 135, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 43, 232, 0.09) 1px, transparent 1px);
   background-size: 34px 34px;
 }

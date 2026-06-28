@@ -4,14 +4,14 @@ export function formatBuildingMetric(value: number, suffix = "") {
 
 export function districtAccent(district: string) {
   const accents: Record<string, string> = {
-    Tech: "#79ffe1",
-    Fashion: "#ffd1dc",
-    Food: "#ffb703",
-    Travel: "#90e0ef",
-    Gaming: "#ff006e",
-    Music: "#4cc9f0",
-    Art: "#8338ec",
-    Default: "#19c2a0"
+    Tech: "#ff7a45",
+    Fashion: "#ff2f87",
+    Food: "#ffb15c",
+    Travel: "#b238d8",
+    Gaming: "#7c2be8",
+    Music: "#ff4fb0",
+    Art: "#c45cff",
+    Default: "#ff2f87"
   };
   return accents[district] ?? accents.Default;
 }

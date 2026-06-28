@@ -1,5 +1,5 @@
 import { API_URL } from "@/lib/constants";
-import type { CityBuilding, InstagramStats, MeResponse, SyncResponse } from "@/lib/types";
+import type { CityBuilding, InstagramStats, MeResponse, PublicInstagramImportRequest, SyncResponse } from "@/lib/types";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -25,8 +25,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function getLoginUrl() {
-  return request<{ redirect_url: string }>("/auth/instagram/login");
+export function importPublicInstagram(payload: PublicInstagramImportRequest) {
+  return request<SyncResponse>("/instagram/public/import", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 }
 
 export function getMe() {

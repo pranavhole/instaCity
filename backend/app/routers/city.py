@@ -30,7 +30,7 @@ def building(building_id: uuid.UUID, db: Session = Depends(get_db)) -> CityBuild
 def my_building(user=Depends(require_current_user), db: Session = Depends(get_db)) -> CityBuildingResponse:
     account = get_account_by_user_id(db, user.id)
     if account is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No connected Instagram account")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No cached public profile")
     item = get_building_by_account_id(db, account.id)
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No building generated")

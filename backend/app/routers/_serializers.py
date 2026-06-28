@@ -1,4 +1,5 @@
 from app.models import CityBuilding, InstagramAccount, InstagramStat
+from app.repositories.instagram_repo import preferred_stats_snapshot
 from app.schemas.city import CityBuildingResponse
 from app.schemas.instagram import InstagramStatsResponse
 
@@ -10,7 +11,7 @@ def serialize_stats(stat: InstagramStat | None) -> InstagramStatsResponse | None
 
 
 def latest_stat(account: InstagramAccount) -> InstagramStat | None:
-    return account.stats[0] if account.stats else None
+    return preferred_stats_snapshot(account.stats)
 
 
 def serialize_building(building: CityBuilding) -> CityBuildingResponse:

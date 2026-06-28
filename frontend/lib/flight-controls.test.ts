@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { advancePlaneFlight, flightKeyForCode, type FlightKeyState, type PlaneFlightState } from "./flight-controls";
+import { advancePlaneFlight, flightKeyForCode, nudgePlaneAltitude, type FlightKeyState, type PlaneFlightState } from "./flight-controls";
 
 const idleKeys: FlightKeyState = {
   forward: false,
@@ -19,14 +19,23 @@ const start: PlaneFlightState = {
 };
 
 describe("flight controls", () => {
-  it("maps dedicated and alternate keys to vertical flight controls", () => {
+  it("maps W and S to altitude while arrow up and down move forward and backward", () => {
+    expect(flightKeyForCode("KeyW")).toBe("up");
+    expect(flightKeyForCode("KeyS")).toBe("down");
+    expect(flightKeyForCode("ArrowUp")).toBe("forward");
+    expect(flightKeyForCode("ArrowDown")).toBe("backward");
+  });
+
+  it("keeps alternate keys for vertical and turn controls", () => {
     expect(flightKeyForCode("Space")).toBe("up");
     expect(flightKeyForCode("KeyE")).toBe("up");
-    expect(flightKeyForCode("ArrowUp")).toBe("up");
     expect(flightKeyForCode("ShiftLeft")).toBe("down");
     expect(flightKeyForCode("ShiftRight")).toBe("down");
     expect(flightKeyForCode("KeyQ")).toBe("down");
-    expect(flightKeyForCode("ArrowDown")).toBe("down");
+    expect(flightKeyForCode("KeyA")).toBe("left");
+    expect(flightKeyForCode("ArrowLeft")).toBe("left");
+    expect(flightKeyForCode("KeyD")).toBe("right");
+    expect(flightKeyForCode("ArrowRight")).toBe("right");
   });
 
   it("moves the plane up and down with visible pitch feedback", () => {
@@ -46,5 +55,13 @@ describe("flight controls", () => {
 
     expect(climb.y).toBe(120);
     expect(descend.y).toBe(8);
+  });
+
+  it("nudges altitude from mouse vertical movement", () => {
+    const mouseUp = nudgePlaneAltitude(start, -40);
+    const mouseDown = nudgePlaneAltitude(start, 40);
+
+    expect(mouseUp.y).toBeGreaterThan(start.y);
+    expect(mouseDown.y).toBeLessThan(start.y);
   });
 });

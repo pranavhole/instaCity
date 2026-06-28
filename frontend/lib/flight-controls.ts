@@ -25,19 +25,27 @@ const MAX_ALTITUDE = 120;
 const LEVEL_PITCH = 0.08;
 const CLIMB_PITCH = -0.2;
 const DESCEND_PITCH = 0.28;
+const MOUSE_ALTITUDE_SCALE = 0.08;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
 export function flightKeyForCode(code: string): keyof FlightKeyState | null {
-  if (code === "KeyW") return "forward";
-  if (code === "KeyS") return "backward";
-  if (code === "KeyA") return "left";
-  if (code === "KeyD") return "right";
-  if (code === "Space" || code === "KeyE" || code === "ArrowUp") return "up";
-  if (code === "ShiftLeft" || code === "ShiftRight" || code === "KeyQ" || code === "ArrowDown") return "down";
+  if (code === "ArrowUp") return "forward";
+  if (code === "ArrowDown") return "backward";
+  if (code === "KeyA" || code === "ArrowLeft") return "left";
+  if (code === "KeyD" || code === "ArrowRight") return "right";
+  if (code === "KeyW" || code === "Space" || code === "KeyE") return "up";
+  if (code === "KeyS" || code === "ShiftLeft" || code === "ShiftRight" || code === "KeyQ") return "down";
   return null;
+}
+
+export function nudgePlaneAltitude(state: PlaneFlightState, mouseMovementY: number): PlaneFlightState {
+  return {
+    ...state,
+    y: clamp(state.y - mouseMovementY * MOUSE_ALTITUDE_SCALE, MIN_ALTITUDE, MAX_ALTITUDE)
+  };
 }
 
 export function advancePlaneFlight(state: PlaneFlightState, keys: FlightKeyState, delta: number): FlightFrame {

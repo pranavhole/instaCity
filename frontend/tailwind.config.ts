@@ -5,14 +5,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        asphalt: "#101820",
-        graphite: "#1f2937",
-        signal: "#19c2a0",
-        coral: "#ff6b6b",
-        skyline: "#6ea8fe"
+        asphalt: "#050712",
+        graphite: "#1a1d33",
+        signal: "#ff2f87",
+        coral: "#ff7a45",
+        skyline: "#7c2be8",
+        "brand-panel": "#111326",
+        "brand-muted": "#d9d8e8",
+        amethyst: "#b238d8"
       },
       boxShadow: {
-        glow: "0 0 40px rgba(25, 194, 160, 0.18)"
+        glow: "0 0 42px rgba(255, 47, 135, 0.24)"
+      },
+      backgroundImage: {
+        "brand-gradient": "linear-gradient(135deg, #ff7a45 0%, #ff2f87 52%, #7c2be8 100%)",
+        "brand-radial": "radial-gradient(circle at 50% 0%, rgba(255, 122, 69, 0.2), rgba(255, 47, 135, 0.12) 35%, rgba(5, 7, 18, 0) 70%)"
       }
     }
   },

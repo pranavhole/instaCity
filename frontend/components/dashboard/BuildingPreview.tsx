@@ -14,19 +14,19 @@ export function BuildingPreview({ building }: { building: CityBuilding | null })
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
             {building
               ? `${building.district} district, ${building.floors} floors, ${building.material_style} material, neon strength ${building.glow_intensity}.`
-              : "Sync Instagram data to generate a deterministic building, then enter the city to fly around it."}
+              : "Import a public profile to generate a deterministic building, then enter the city to fly around it."}
           </p>
         </div>
         <Link href="/city">
           <Button>Enter city</Button>
         </Link>
       </div>
-      <div className="mt-6 flex h-48 items-end justify-center gap-3 rounded-lg bg-[#0b1117] p-6 city-grid">
+      <div className="mt-6 flex h-48 items-end justify-center gap-3 rounded-lg bg-asphalt p-6 city-grid">
         <div
           className="w-20 rounded-t-md"
           style={{
             height: building ? `${Math.max(42, Math.min(170, building.height * 2.2))}px` : "80px",
-            background: building ? `linear-gradient(180deg, ${building.color_palette[0]}, ${building.color_palette[1]})` : "linear-gradient(180deg, #19c2a0, #6ea8fe)"
+            background: building ? `linear-gradient(180deg, ${building.color_palette[0]}, ${building.color_palette[1]})` : "linear-gradient(180deg, #ff7a45, #ff2f87 52%, #7c2be8)"
           }}
         />
         <div className="h-24 w-10 rounded-t-md bg-white/25" />

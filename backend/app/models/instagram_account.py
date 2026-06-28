@@ -29,4 +29,5 @@ class InstagramAccount(Base):
 
     user = relationship("User", back_populates="instagram_accounts")
     stats = relationship("InstagramStat", back_populates="instagram_account", cascade="all, delete-orphan", order_by="InstagramStat.created_at.desc()")
+    posts = relationship("InstagramPost", back_populates="instagram_account", cascade="all, delete-orphan", order_by="InstagramPost.created_at.desc()")
     building = relationship("CityBuilding", back_populates="instagram_account", cascade="all, delete-orphan", uselist=False)

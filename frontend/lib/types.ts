@@ -22,6 +22,8 @@ export type InstagramStats = {
   avg_comments: number;
   avg_views: number;
   reels_count: number;
+  top_post_image_url: string | null;
+  top_post_url: string | null;
   engagement_rate: number;
 };
 
@@ -56,4 +58,8 @@ export type CityBuilding = {
 export type SyncResponse = {
   stats: InstagramStats;
   building: CityBuilding;
+};
+
+export type PublicInstagramImportRequest = {
+  identifier: string;
 };

@@ -1,7 +1,11 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class PublicInstagramImportRequest(BaseModel):
+    identifier: str = Field(min_length=1, max_length=255)
 
 
 class InstagramAccountResponse(BaseModel):
@@ -23,6 +27,8 @@ class InstagramStatsResponse(BaseModel):
     avg_comments: int
     avg_views: int
     reels_count: int
+    top_post_image_url: str | None
+    top_post_url: str | None
     engagement_rate: float
 
     model_config = ConfigDict(from_attributes=True)

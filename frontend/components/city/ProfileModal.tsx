@@ -1,18 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { ExternalLink, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { STAT_FORMATTER } from "@/lib/constants";
+import type { CityBuilding } from "@/lib/types";
 import { useCityStore } from "@/stores/cityStore";
 
-export function ProfileModal() {
-  const building = useCityStore((state) => state.selectedBuilding);
-  const setSelectedBuilding = useCityStore((state) => state.setSelectedBuilding);
-
-  if (!building) return null;
-
+export function ProfileModalContent({ building, onClose }: { building: CityBuilding; onClose: () => void }) {
   const stats = building.stats;
+  const topPostImage = stats?.top_post_image_url;
+  const topPostUrl = stats?.top_post_url;
   const statItems = [
     ["Followers", stats?.followers_count],
     ["Posts", stats?.media_count],
@@ -22,21 +21,29 @@ export function ProfileModal() {
   ];
 
   return (
-    <div className="absolute right-4 top-4 z-20 w-[min(390px,calc(100vw-2rem))] rounded-lg border border-white/10 bg-[#101820]/95 p-5 shadow-glow backdrop-blur">
+    <div className="absolute right-4 top-4 z-20 w-[min(390px,calc(100vw-2rem))] rounded-lg border border-white/10 bg-brand-panel/95 p-5 shadow-glow backdrop-blur">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-lg bg-white/10">
-            {building.profile_picture_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={building.profile_picture_url} alt="" className="h-full w-full object-cover" />
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="h-12 w-12 overflow-hidden rounded-lg bg-white/10">
+              {building.profile_picture_url ? (
+                <img src={building.profile_picture_url} alt="" className="h-full w-full object-cover" />
+              ) : null}
+            </div>
+            {topPostImage ? (
+              <a href={topPostUrl ?? `https://www.instagram.com/${building.username}`} target="_blank" rel="noreferrer" className="group relative h-12 w-12 overflow-hidden rounded-lg border border-signal/40 bg-white/10">
+                <img src={topPostImage} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+                <span className="sr-only">Most viral post</span>
+              </a>
             ) : null}
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl font-black text-white">@{building.username}</h2>
             <p className="text-sm text-slate-400">{building.category ?? building.district}</p>
+            {topPostImage ? <p className="mt-1 text-xs font-semibold text-signal">Most viral post</p> : null}
           </div>
         </div>
-        <button onClick={() => setSelectedBuilding(null)} className="rounded-md p-2 text-slate-300 hover:bg-white/10" aria-label="Close profile">
+        <button onClick={onClose} className="rounded-md p-2 text-slate-300 hover:bg-white/10" aria-label="Close profile">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -55,14 +62,21 @@ export function ProfileModal() {
         <div className="mt-1 text-xs text-slate-400">{building.district} district - {building.floors} floors - {building.material_style}</div>
       </div>
 
-      <div className="mt-5">
-        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Recent media preview</div>
-        <div className="grid grid-cols-3 gap-2">
-          {building.color_palette.map((color, index) => (
-            <div key={`${color}-${index}`} className="h-16 rounded-md" style={{ background: `linear-gradient(135deg, ${color}, #111827)` }} />
-          ))}
+      {topPostImage ? (
+        <a href={topPostUrl ?? `https://www.instagram.com/${building.username}`} target="_blank" rel="noreferrer" className="mt-5 block overflow-hidden rounded-md border border-white/10 bg-white/[0.05]">
+          <div className="px-3 pt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Most viral post</div>
+          <img src={topPostImage} alt="" className="mt-3 h-36 w-full object-cover" />
+        </a>
+      ) : (
+        <div className="mt-5">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Profile palette</div>
+          <div className="grid grid-cols-3 gap-2">
+            {building.color_palette.map((color, index) => (
+              <div key={`${color}-${index}`} className="h-16 rounded-md" style={{ background: `linear-gradient(135deg, ${color}, #050712)` }} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <a href={`https://www.instagram.com/${building.username}`} target="_blank" rel="noreferrer">
         <Button className="mt-5 w-full">
@@ -72,4 +86,13 @@ export function ProfileModal() {
       </a>
     </div>
   );
+}
+
+export function ProfileModal() {
+  const building = useCityStore((state) => state.selectedBuilding);
+  const setSelectedBuilding = useCityStore((state) => state.setSelectedBuilding);
+
+  if (!building) return null;
+
+  return <ProfileModalContent building={building} onClose={() => setSelectedBuilding(null)} />;
 }

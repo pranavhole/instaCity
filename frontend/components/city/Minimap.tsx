@@ -14,7 +14,7 @@ export function Minimap({ buildings }: { buildings: CityBuilding[] }) {
   const plane = useCityStore((state) => state.plane);
 
   return (
-    <div className="absolute bottom-4 left-4 z-20 h-[150px] w-[150px] rounded-lg border border-white/10 bg-[#101820]/85 shadow-glow backdrop-blur">
+    <div className="absolute bottom-4 left-4 z-20 h-[150px] w-[150px] rounded-lg border border-white/10 bg-brand-panel/85 shadow-glow backdrop-blur">
       <div className="absolute left-3 top-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Radar</div>
       {buildings.map((building) => (
         <span
@@ -23,7 +23,7 @@ export function Minimap({ buildings }: { buildings: CityBuilding[] }) {
           style={{
             left: mapCoord(building.position_x),
             top: mapCoord(building.position_z),
-            boxShadow: `0 0 10px ${building.color_palette[0] ?? "#19c2a0"}`
+            boxShadow: `0 0 10px ${building.color_palette[0] ?? "#ff2f87"}`
           }}
         />
       ))}

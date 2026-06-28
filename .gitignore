@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 .superpowers/
+.railway/
 node_modules/
 .next/
 dist/
