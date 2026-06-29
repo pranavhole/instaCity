@@ -9,6 +9,7 @@ describe("frontend Docker build config", () => {
 
     expect(buildIndex).toBeGreaterThan(-1);
     expect(dockerfile.indexOf("ARG NEXT_PUBLIC_API_URL")).toBeGreaterThan(-1);
+    expect(dockerfile).toContain("ARG NEXT_PUBLIC_API_URL=https://backend-production-f3f0.up.railway.app");
     expect(dockerfile.indexOf("ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}")).toBeGreaterThan(-1);
     expect(dockerfile.indexOf("ARG NEXT_PUBLIC_API_URL")).toBeLessThan(buildIndex);
     expect(dockerfile.indexOf("ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}")).toBeLessThan(buildIndex);

@@ -134,6 +134,109 @@ async def test_apify_provider_accepts_full_profile_url() -> None:
 
 
 @pytest.mark.asyncio
+async def test_apify_provider_uses_latest_posts_from_profile_details_without_posts_scrape() -> None:
+    requests: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content.decode())
+        requests.append(payload)
+        assert payload["resultsType"] == "details"
+        return httpx.Response(
+            201,
+            json=[
+                {
+                    "id": "nasa-profile",
+                    "username": "nasa",
+                    "profilePicUrl": "https://cdn.example.com/nasa-profile.jpg",
+                    "followersCount": 95000000,
+                    "followsCount": 80,
+                    "postsCount": 4000,
+                    "latestPosts": [
+                        {
+                            "shortCode": "NASA1",
+                            "url": "https://www.instagram.com/p/NASA1/",
+                            "displayUrl": "https://cdn.example.com/nasa-1.jpg",
+                            "likesCount": 1000,
+                            "commentsCount": 50,
+                        },
+                        {
+                            "shortCode": "NASA2",
+                            "url": "https://www.instagram.com/p/NASA2/",
+                            "displayUrl": "https://cdn.example.com/nasa-2.jpg",
+                            "likesCount": 3000,
+                            "commentsCount": 150,
+                        },
+                    ],
+                }
+            ],
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = ApifyInstagramProvider(api_token="apify-token", http_client=client)
+        snapshot = await provider.fetch_public_profile("nasa")
+
+    assert [request["resultsType"] for request in requests] == ["details"]
+    assert snapshot.account.username == "nasa"
+    assert snapshot.stats.followers_count == 95000000
+    assert snapshot.stats.avg_likes == 2000
+    assert snapshot.stats.avg_comments == 100
+    assert snapshot.stats.top_post_url == "https://www.instagram.com/p/NASA2/"
+
+
+@pytest.mark.asyncio
+async def test_apify_provider_retries_posts_with_smaller_limit_after_actor_timeout() -> None:
+    post_limits: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content.decode())
+        if payload["resultsType"] == "details":
+            return httpx.Response(
+                201,
+                json=[
+                    {
+                        "id": "nasa-profile",
+                        "username": "nasa",
+                        "followersCount": 95000000,
+                        "postsCount": 4000,
+                    }
+                ],
+            )
+
+        post_limits.append(payload["resultsLimit"])
+        if payload["resultsLimit"] == 100:
+            return httpx.Response(
+                400,
+                json={
+                    "error": {
+                        "message": "Actor run did not succeed (run ID: abc, status: TIMED-OUT)."
+                    }
+                },
+            )
+        return httpx.Response(
+            201,
+            json=[
+                {
+                    "ownerUsername": "nasa",
+                    "shortCode": "NASA1",
+                    "displayUrl": "https://cdn.example.com/nasa.jpg",
+                    "likesCount": 1000,
+                    "commentsCount": 50,
+                }
+            ],
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = ApifyInstagramProvider(api_token="apify-token", http_client=client)
+        snapshot = await provider.fetch_public_profile("nasa")
+
+    assert post_limits == [100, 12]
+    assert snapshot.account.username == "nasa"
+    assert snapshot.stats.followers_count == 95000000
+    assert snapshot.stats.avg_likes == 1000
+    assert snapshot.stats.avg_comments == 50
+
+
+@pytest.mark.asyncio
 async def test_apify_provider_rejects_error_only_dataset_items() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(

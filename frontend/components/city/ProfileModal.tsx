@@ -1,10 +1,11 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, ImageIcon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { STAT_FORMATTER } from "@/lib/constants";
+import { profileInitials } from "@/lib/profile-fallback";
 import type { CityBuilding } from "@/lib/types";
 import { useCityStore } from "@/stores/cityStore";
 
@@ -12,6 +13,7 @@ export function ProfileModalContent({ building, onClose }: { building: CityBuild
   const stats = building.stats;
   const topPostImage = stats?.top_post_image_url;
   const topPostUrl = stats?.top_post_url;
+  const initials = profileInitials(building.username);
   const statItems = [
     ["Followers", stats?.followers_count],
     ["Posts", stats?.media_count],
@@ -25,14 +27,19 @@ export function ProfileModalContent({ building, onClose }: { building: CityBuild
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex shrink-0 items-center gap-2">
-            <div className="h-12 w-12 overflow-hidden rounded-lg bg-white/10">
-              {building.profile_picture_url ? (
-                <img src={building.profile_picture_url} alt="" className="h-full w-full object-cover" />
-              ) : null}
-            </div>
+            <RemoteImage
+              src={building.profile_picture_url}
+              className="h-12 w-12 overflow-hidden rounded-lg bg-brand-gradient p-[2px]"
+              imageClassName="h-full w-full rounded-[0.4rem] object-cover"
+              fallback={<div className="flex h-full w-full items-center justify-center rounded-[0.4rem] bg-brand-panel text-sm font-black text-white">{initials}</div>}
+            />
             {topPostImage ? (
               <a href={topPostUrl ?? `https://www.instagram.com/${building.username}`} target="_blank" rel="noreferrer" className="group relative h-12 w-12 overflow-hidden rounded-lg border border-signal/40 bg-white/10">
-                <img src={topPostImage} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
+                <RemoteImage
+                  src={topPostImage}
+                  imageClassName="h-full w-full object-cover transition group-hover:scale-105"
+                  fallback={<div className="flex h-full w-full items-center justify-center bg-brand-panel text-signal"><ImageIcon className="h-5 w-5" /></div>}
+                />
                 <span className="sr-only">Most viral post</span>
               </a>
             ) : null}
@@ -65,7 +72,12 @@ export function ProfileModalContent({ building, onClose }: { building: CityBuild
       {topPostImage ? (
         <a href={topPostUrl ?? `https://www.instagram.com/${building.username}`} target="_blank" rel="noreferrer" className="mt-5 block overflow-hidden rounded-md border border-white/10 bg-white/[0.05]">
           <div className="px-3 pt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Most viral post</div>
-          <img src={topPostImage} alt="" className="mt-3 h-36 w-full object-cover" />
+          <RemoteImage
+            src={topPostImage}
+            className="mt-3 h-36 w-full"
+            imageClassName="h-full w-full object-cover"
+            fallback={<div className="flex h-full w-full items-center justify-center bg-brand-panel text-signal"><ImageIcon className="h-8 w-8" /></div>}
+          />
         </a>
       ) : (
         <div className="mt-5">

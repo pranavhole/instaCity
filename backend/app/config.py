@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     backend_cors_origins: str = "http://localhost:3000"
     apify_api_token: str | None = None
     apify_actor_id: str = "apify/instagram-scraper"
-    apify_results_limit: int = 100
+    apify_results_limit: int = 12
     session_secret: str = "change-me"
     token_encryption_key: str = "local-dev-token-key-32-bytes-long"
 

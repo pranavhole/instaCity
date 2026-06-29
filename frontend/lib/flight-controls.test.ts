@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { advancePlaneFlight, flightKeyForCode, nudgePlaneAltitude, type FlightKeyState, type PlaneFlightState } from "./flight-controls";
+import {
+  advancePlaneFlight,
+  flightKeyForCode,
+  flightKeysFromJoystick,
+  mergeFlightKeys,
+  nudgePlaneAltitude,
+  type FlightKeyState,
+  type PlaneFlightState
+} from "./flight-controls";
 
 const idleKeys: FlightKeyState = {
   forward: false,
@@ -63,5 +71,19 @@ describe("flight controls", () => {
 
     expect(mouseUp.y).toBeGreaterThan(start.y);
     expect(mouseDown.y).toBeLessThan(start.y);
+  });
+
+  it("maps a mobile joystick vector to flight keys with a dead zone", () => {
+    expect(flightKeysFromJoystick({ x: 0, y: 0 })).toEqual(idleKeys);
+    expect(flightKeysFromJoystick({ x: 0, y: -0.8 })).toEqual({ ...idleKeys, forward: true });
+    expect(flightKeysFromJoystick({ x: 0, y: 0.8 })).toEqual({ ...idleKeys, backward: true });
+    expect(flightKeysFromJoystick({ x: -0.8, y: 0 })).toEqual({ ...idleKeys, left: true });
+    expect(flightKeysFromJoystick({ x: 0.8, y: 0 })).toEqual({ ...idleKeys, right: true });
+  });
+
+  it("merges keyboard and mobile key state so either input can fly the plane", () => {
+    const merged = mergeFlightKeys({ ...idleKeys, forward: true, left: true }, { ...idleKeys, up: true });
+
+    expect(merged).toEqual({ ...idleKeys, forward: true, left: true, up: true });
   });
 });

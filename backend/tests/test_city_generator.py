@@ -1,4 +1,5 @@
 from app.services.city_generator import (
+    block_position_for_index,
     building_type_for_followers,
     district_for_category,
     engagement_rate,
@@ -78,19 +79,19 @@ def test_zero_followers_engagement_is_zero() -> None:
     assert engagement_rate(avg_likes=50, avg_comments=10, followers=0) == 0
 
 
-def test_same_instagram_id_gets_same_position() -> None:
-    first = generate_building(account(instagram_user_id="stable-id"), stats())
-    second = generate_building(account(instagram_user_id="stable-id"), stats(avg_likes=2200))
+def test_city_block_positions_grow_row_by_row() -> None:
+    assert block_position_for_index(0) == (-144, 0)
+    assert block_position_for_index(1) == (-72, 0)
+    assert block_position_for_index(2) == (0, 0)
+    assert block_position_for_index(3) == (72, 0)
+    assert block_position_for_index(4) == (144, 0)
+    assert block_position_for_index(5) == (-144, 72)
 
-    assert first.position_x == second.position_x
-    assert first.position_z == second.position_z
 
+def test_generated_building_defaults_to_first_city_block() -> None:
+    generated = generate_building(account(instagram_user_id="stable-id"), stats())
 
-def test_different_ids_use_different_grid_cells() -> None:
-    first = generate_building(account(instagram_user_id="stable-id-a"), stats())
-    second = generate_building(account(instagram_user_id="stable-id-b"), stats())
-
-    assert (first.position_x, first.position_z) != (second.position_x, second.position_z)
+    assert (generated.position_x, generated.position_z) == block_position_for_index(0)
 
 
 def test_district_maps_category_keywords() -> None:

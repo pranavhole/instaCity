@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models import CityBuilding, InstagramAccount
-from app.services.city_generator import GeneratedBuilding
+from app.services.city_generator import GeneratedBuilding, block_position_for_index
 
 
 def upsert_building(db: Session, account_id: uuid.UUID, generated: GeneratedBuilding) -> CityBuilding:
@@ -27,9 +27,14 @@ def upsert_building(db: Session, account_id: uuid.UUID, generated: GeneratedBuil
         "color_palette": generated.color_palette,
     }
     if building is None:
+        position_x, position_z = block_position_for_index(db.query(CityBuilding).count())
+        data["position_x"] = position_x
+        data["position_z"] = position_z
         building = CityBuilding(instagram_account_id=account_id, **data)
         db.add(building)
     else:
+        data.pop("position_x", None)
+        data.pop("position_z", None)
         for key, value in data.items():
             setattr(building, key, value)
     db.flush()
@@ -43,6 +48,8 @@ def list_city_buildings(db: Session) -> list[CityBuilding]:
         .options(
             joinedload(CityBuilding.instagram_account).selectinload(InstagramAccount.stats),
         )
+        .filter(InstagramAccount.account_type == "APIFY_PUBLIC")
+        .filter(InstagramAccount.category == "Public profile")
         .order_by(CityBuilding.created_at.asc())
         .all()
     )

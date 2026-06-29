@@ -5,14 +5,17 @@ import Link from "next/link";
 
 import { CityScene } from "@/components/city/CityScene";
 import { Minimap } from "@/components/city/Minimap";
+import { MobileFlightControls } from "@/components/city/MobileFlightControls";
 import { ProfileModal } from "@/components/city/ProfileModal";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { getBuildings } from "@/lib/api";
+import { getBuildings, getMe } from "@/lib/api";
 
 export default function CityPage() {
   const buildingsQuery = useQuery({ queryKey: ["buildings"], queryFn: getBuildings });
+  const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
   const buildings = buildingsQuery.data ?? [];
+  const currentAccountId = meQuery.data?.instagram_account?.id ?? null;
 
   return (
     <main className="relative h-screen overflow-hidden bg-asphalt">
@@ -33,12 +36,13 @@ export default function CityPage() {
         </div>
       ) : (
         <>
-          <CityScene buildings={buildings} />
+          <CityScene buildings={buildings} currentAccountId={currentAccountId} />
           <div className="pointer-events-none absolute left-4 top-4 z-20 rounded-lg border border-white/10 bg-brand-panel/85 p-4 text-sm text-slate-200 shadow-glow backdrop-blur">
             <Link href="/dashboard" className="pointer-events-auto font-semibold text-signal">Dashboard</Link>
-            <div className="mt-2 text-xs text-slate-400">Click city to lock mouse. Mouse up/down or W/S changes altitude. Arrow up/down moves forward/back.</div>
+            <div className="mt-2 text-xs text-slate-400">Move mouse over city to steer altitude and heading. W/S changes altitude. Arrow up/down moves forward/back.</div>
           </div>
           <Minimap buildings={buildings} />
+          <MobileFlightControls />
           <ProfileModal />
         </>
       )}

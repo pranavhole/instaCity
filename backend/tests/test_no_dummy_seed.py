@@ -50,3 +50,32 @@ def test_stale_zero_stats_cleanup_migration_is_present() -> None:
     assert "avg_comments = 0" in content
     assert "avg_views = 0" in content
     assert "top_post_image_url IS NULL" in content
+
+
+def test_demo_city_cleanup_migration_is_present() -> None:
+    migration = BACKEND_ROOT / "alembic" / "versions" / "20260629_0005_remove_demo_city_accounts.py"
+    content = migration.read_text()
+
+    for username in ["food-court", "global-roamer", "daily-creator", "art-museum"]:
+        assert username in content
+
+    assert "creator_[0-9]+" in content
+    assert "DELETE FROM instagram_accounts" in content
+
+
+def test_city_listing_filters_to_real_apify_public_profiles() -> None:
+    content = (BACKEND_ROOT / "app" / "repositories" / "city_repo.py").read_text()
+
+    assert 'InstagramAccount.account_type == "APIFY_PUBLIC"' in content
+    assert 'InstagramAccount.category == "Public profile"' in content
+
+
+def test_real_city_relayout_migration_is_present() -> None:
+    migration = BACKEND_ROOT / "alembic" / "versions" / "20260629_0006_relayout_real_city_blocks.py"
+    content = migration.read_text()
+
+    assert "ROW_NUMBER()" in content
+    assert "position_x" in content
+    assert "position_z" in content
+    assert "APIFY_PUBLIC" in content
+    assert "Public profile" in content

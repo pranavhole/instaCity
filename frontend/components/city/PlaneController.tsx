@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-import { advancePlaneFlight, flightKeyForCode, nudgePlaneAltitude, type FlightKeyState, type PlaneFlightState } from "@/lib/flight-controls";
+import { advancePlaneFlight, emptyFlightKeys, flightKeyForCode, mergeFlightKeys, nudgePlaneAltitude, type FlightKeyState, type PlaneFlightState } from "@/lib/flight-controls";
 import { useCityStore } from "@/stores/cityStore";
 
 const leftWing = new Float32Array([0, 0.22, 4.2, -3.4, -0.18, -2.4, 0, 0.05, -0.7]);
@@ -40,12 +40,23 @@ function PaperPlaneModel() {
   );
 }
 
-export function PlaneController() {
+export function PlaneController({ spawn }: { spawn: PlaneFlightState }) {
   const group = useRef<THREE.Group>(null);
-  const plane = useRef<PlaneFlightState>({ x: 0, y: 18, z: 90, heading: Math.PI });
-  const keys = useRef<FlightKeyState>({ forward: false, backward: false, left: false, right: false, up: false, down: false });
+  const plane = useRef<PlaneFlightState>(spawn);
+  const keys = useRef<FlightKeyState>({ ...emptyFlightKeys });
+  const pointerInside = useRef(false);
   const setPlane = useCityStore((state) => state.setPlane);
+  const mobileKeys = useCityStore((state) => state.mobileKeys);
   const gl = useThree((state) => state.gl);
+
+  useEffect(() => {
+    plane.current = spawn;
+    setPlane(spawn);
+    if (group.current) {
+      group.current.position.set(spawn.x, spawn.y, spawn.z);
+      group.current.rotation.set(0.08, spawn.heading, 0);
+    }
+  }, [setPlane, spawn]);
 
   useEffect(() => {
     function key(event: KeyboardEvent, value: boolean) {
@@ -56,35 +67,36 @@ export function PlaneController() {
     }
 
     function mouse(event: MouseEvent) {
-      if (document.pointerLockElement === gl.domElement) {
+      if (pointerInside.current) {
         plane.current.heading -= event.movementX * 0.0022;
         plane.current = nudgePlaneAltitude(plane.current, event.movementY);
       }
     }
 
-    function lock() {
-      const request = gl.domElement.requestPointerLock();
-      if (request instanceof Promise) {
-        void request.catch(() => undefined);
-      }
-    }
-
     const down = (event: KeyboardEvent) => key(event, true);
     const up = (event: KeyboardEvent) => key(event, false);
+    const enter = () => {
+      pointerInside.current = true;
+    };
+    const leave = () => {
+      pointerInside.current = false;
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     window.addEventListener("mousemove", mouse);
-    gl.domElement.addEventListener("click", lock);
+    gl.domElement.addEventListener("pointerenter", enter);
+    gl.domElement.addEventListener("pointerleave", leave);
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
       window.removeEventListener("mousemove", mouse);
-      gl.domElement.removeEventListener("click", lock);
+      gl.domElement.removeEventListener("pointerenter", enter);
+      gl.domElement.removeEventListener("pointerleave", leave);
     };
   }, [gl.domElement]);
 
   useFrame((_, delta) => {
-    const frame = advancePlaneFlight(plane.current, keys.current, delta);
+    const frame = advancePlaneFlight(plane.current, mergeFlightKeys(keys.current, mobileKeys), delta);
     plane.current = { x: frame.x, y: frame.y, z: frame.z, heading: frame.heading };
 
     if (group.current) {
@@ -95,7 +107,7 @@ export function PlaneController() {
   });
 
   return (
-    <group ref={group} position={[0, 18, 90]}>
+    <group ref={group} position={[spawn.x, spawn.y, spawn.z]}>
       <PaperPlaneModel />
     </group>
   );

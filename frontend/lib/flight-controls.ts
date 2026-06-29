@@ -14,6 +14,11 @@ export type FlightKeyState = {
   down: boolean;
 };
 
+export type JoystickVector = {
+  x: number;
+  y: number;
+};
+
 export type FlightFrame = PlaneFlightState & {
   pitch: number;
   roll: number;
@@ -26,6 +31,16 @@ const LEVEL_PITCH = 0.08;
 const CLIMB_PITCH = -0.2;
 const DESCEND_PITCH = 0.28;
 const MOUSE_ALTITUDE_SCALE = 0.08;
+const JOYSTICK_DEAD_ZONE = 0.28;
+
+export const emptyFlightKeys: FlightKeyState = {
+  forward: false,
+  backward: false,
+  left: false,
+  right: false,
+  up: false,
+  down: false
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -46,6 +61,30 @@ export function nudgePlaneAltitude(state: PlaneFlightState, mouseMovementY: numb
     ...state,
     y: clamp(state.y - mouseMovementY * MOUSE_ALTITUDE_SCALE, MIN_ALTITUDE, MAX_ALTITUDE)
   };
+}
+
+export function flightKeysFromJoystick(vector: JoystickVector): FlightKeyState {
+  return {
+    ...emptyFlightKeys,
+    forward: vector.y < -JOYSTICK_DEAD_ZONE,
+    backward: vector.y > JOYSTICK_DEAD_ZONE,
+    left: vector.x < -JOYSTICK_DEAD_ZONE,
+    right: vector.x > JOYSTICK_DEAD_ZONE
+  };
+}
+
+export function mergeFlightKeys(...states: FlightKeyState[]): FlightKeyState {
+  return states.reduce<FlightKeyState>(
+    (merged, state) => ({
+      forward: merged.forward || state.forward,
+      backward: merged.backward || state.backward,
+      left: merged.left || state.left,
+      right: merged.right || state.right,
+      up: merged.up || state.up,
+      down: merged.down || state.down
+    }),
+    emptyFlightKeys
+  );
 }
 
 export function advancePlaneFlight(state: PlaneFlightState, keys: FlightKeyState, delta: number): FlightFrame {

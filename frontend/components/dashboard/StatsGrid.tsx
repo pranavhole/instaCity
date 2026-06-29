@@ -18,7 +18,7 @@ export function StatsGrid({ stats }: { stats: InstagramStats | null }) {
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => {
         const Icon = item.icon;
-        const display = typeof item.value === "number" ? STAT_FORMATTER.format(item.value) : item.value ?? "Sync";
+        const display = typeof item.value === "number" ? STAT_FORMATTER.format(item.value) : item.value ?? "n/a";
         return (
           <Card key={item.label} className="min-h-[132px]">
             <div className="mb-4 flex items-center justify-between">

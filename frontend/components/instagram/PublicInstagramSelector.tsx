@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { importPublicInstagram } from "@/lib/api";
 
 type PublicInstagramSelectorProps = {
@@ -37,28 +38,37 @@ export function PublicInstagramSelector({ className }: PublicInstagramSelectorPr
   }
 
   return (
-    <form onSubmit={submit} className={className}>
-      <label htmlFor="instagram-public-identifier" className="text-sm font-semibold text-white">
-        Instagram profile URL or username
-      </label>
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            id="instagram-public-identifier"
-            value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
-            placeholder="e.g. humansofny or https://www.instagram.com/humansofny/"
-            className="h-12 w-full rounded-md border border-white/15 bg-brand-panel/80 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-signal focus:ring-2 focus:ring-signal/30"
-            autoComplete="off"
-          />
+    <>
+      <form onSubmit={submit} className={className}>
+        <label htmlFor="instagram-public-identifier" className="text-sm font-semibold text-white">
+          Instagram profile URL or username
+        </label>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              id="instagram-public-identifier"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              placeholder="e.g. humansofny or https://www.instagram.com/humansofny/"
+              className="h-12 w-full rounded-md border border-white/15 bg-brand-panel/80 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-signal focus:ring-2 focus:ring-signal/30"
+              autoComplete="off"
+            />
+          </div>
+          <Button type="submit" disabled={loading} className="h-12 px-5">
+            {loading ? "Building" : "Build city"}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
-        <Button type="submit" disabled={loading} className="h-12 px-5">
-          {loading ? "Building" : "Build city"}
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </div>
-      {error ? <p className="mt-3 text-sm text-coral">{error}</p> : null}
-    </form>
+        {error ? <p className="mt-3 text-sm text-coral">{error}</p> : null}
+      </form>
+      {loading ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-asphalt/90 px-6 backdrop-blur">
+          <div className="w-full max-w-sm rounded-lg border border-white/10 bg-brand-panel/95 p-6 shadow-glow">
+            <LoadingState label="Building city" />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Home } from "lucide-react";
 import Link from "next/link";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -9,25 +9,13 @@ import { AccountCard } from "@/components/dashboard/AccountCard";
 import { BuildingPreview } from "@/components/dashboard/BuildingPreview";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { PublicInstagramSelector } from "@/components/instagram/PublicInstagramSelector";
-import { Button } from "@/components/ui/Button";
-import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { getMe, getMyBuilding, getMyStats, syncInstagram } from "@/lib/api";
+import { getMe, getMyBuilding, getMyStats } from "@/lib/api";
 
 export default function DashboardPage() {
-  const queryClient = useQueryClient();
   const meQuery = useQuery({ queryKey: ["me"], queryFn: getMe, retry: false });
   const statsQuery = useQuery({ queryKey: ["stats"], queryFn: getMyStats, retry: false, enabled: Boolean(meQuery.data?.instagram_account) });
   const buildingQuery = useQuery({ queryKey: ["my-building"], queryFn: getMyBuilding, retry: false, enabled: Boolean(meQuery.data?.instagram_account) });
-  const syncMutation = useMutation({
-    mutationFn: syncInstagram,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["me"] });
-      void queryClient.invalidateQueries({ queryKey: ["stats"] });
-      void queryClient.invalidateQueries({ queryKey: ["my-building"] });
-      void queryClient.invalidateQueries({ queryKey: ["buildings"] });
-    }
-  });
 
   if (meQuery.isLoading) {
     return (
@@ -45,6 +33,10 @@ export default function DashboardPage() {
           <h1 className="text-center text-2xl font-bold text-white">Select a public profile</h1>
           <p className="mt-3 text-center text-sm leading-6 text-slate-300">Build a city from a public profile URL or username.</p>
           <PublicInstagramSelector className="mt-6" />
+          <Link href="/" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
         </div>
       </main>
     );
@@ -64,17 +56,15 @@ export default function DashboardPage() {
             <h1 className="mt-2 text-4xl font-black text-white">Dashboard</h1>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
-              <RefreshCw className={syncMutation.isPending ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              Rebuild From Cache
-            </Button>
+            <Link href="/" className="inline-flex items-center gap-2 rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
             <Link href="/city" className="inline-flex items-center rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
               Enter City
             </Link>
           </div>
         </header>
-
-        {syncMutation.isError ? <ErrorState message={syncMutation.error.message} /> : null}
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <AccountCard user={meQuery.data?.user ?? null} account={meQuery.data?.instagram_account ?? null} />

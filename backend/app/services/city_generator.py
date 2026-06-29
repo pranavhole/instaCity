@@ -1,4 +1,3 @@
-import hashlib
 import math
 from dataclasses import dataclass
 
@@ -88,15 +87,16 @@ def palette_for_district(district: str) -> list[str]:
     return palettes.get(district, palettes["Default"])
 
 
-def stable_grid_position(instagram_user_id: str) -> tuple[float, float]:
-    digest = hashlib.sha256(instagram_user_id.encode("utf-8")).hexdigest()
-    raw = int(digest[:12], 16)
-    grid_size = 22
-    spacing = 30
-    x_cell = raw % grid_size
-    z_cell = (raw // grid_size) % grid_size
-    center = (grid_size - 1) / 2
-    return (x_cell - center) * spacing, (z_cell - center) * spacing
+CITY_BLOCK_SPACING = 72
+CITY_BLOCKS_PER_ROW = 5
+
+
+def block_position_for_index(index: int) -> tuple[float, float]:
+    safe_index = max(0, index)
+    column = safe_index % CITY_BLOCKS_PER_ROW
+    row = safe_index // CITY_BLOCKS_PER_ROW
+    centered_column = column - ((CITY_BLOCKS_PER_ROW - 1) / 2)
+    return centered_column * CITY_BLOCK_SPACING, row * CITY_BLOCK_SPACING
 
 
 def generate_building(account: InstagramAccountData, stats: InstagramStatsData) -> GeneratedBuilding:
@@ -107,7 +107,7 @@ def generate_building(account: InstagramAccountData, stats: InstagramStatsData) 
     glow = round(clamp(math.log10(stats.avg_views + 1) / 6, 0.1, 1), 2)
     rate = engagement_rate(stats.avg_likes, stats.avg_comments, followers)
     district = district_for_category(account.category)
-    x, z = stable_grid_position(account.instagram_user_id)
+    x, z = block_position_for_index(0)
     return GeneratedBuilding(
         building_type=building_type_for_followers(followers),
         district=district,

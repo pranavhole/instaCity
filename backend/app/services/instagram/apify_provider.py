@@ -17,6 +17,7 @@ from app.services.instagram.base import (
 
 APIFY_API_BASE_URL = "https://api.apify.com/v2"
 DEFAULT_ACTOR_ID = "apify/instagram-scraper"
+FALLBACK_POSTS_LIMIT = 12
 
 
 class ApifyInstagramProvider:
@@ -37,12 +38,19 @@ class ApifyInstagramProvider:
             raise ProviderConfigurationError("Public profile import requires APIFY_API_TOKEN on the backend.")
 
         direct_url = self._direct_profile_url(identifier)
-        items = await self._run_actor(direct_url, results_type="posts", results_limit=self.results_limit)
-        if not items:
-            raise ProviderConfigurationError("Apify Instagram scraper returned no posts for that profile.")
-        items = self._usable_items_or_raise(items)
-
         details = await self._profile_details(direct_url)
+        items = self._latest_posts_from_details(details)
+        if not items:
+            try:
+                items = await self._run_actor(direct_url, results_type="posts", results_limit=self.results_limit)
+            except ProviderConfigurationError as exc:
+                if self.results_limit <= FALLBACK_POSTS_LIMIT or not self._is_timeout_error(exc):
+                    raise
+                items = await self._run_actor(direct_url, results_type="posts", results_limit=FALLBACK_POSTS_LIMIT)
+            if not items:
+                raise ProviderConfigurationError("Apify Instagram scraper returned no posts for that profile.")
+            items = self._usable_items_or_raise(items)
+
         profile_items = [details, *items] if details else items
 
         username = self._first_string(profile_items, "username", "ownerUsername") or self._username_from_identifier(identifier)
@@ -88,6 +96,15 @@ class ApifyInstagramProvider:
             return None
         usable = [item for item in items if not item.get("error") and not item.get("errorDescription")]
         return usable[0] if usable else None
+
+    @staticmethod
+    def _latest_posts_from_details(details: dict[str, Any] | None) -> list[dict[str, Any]]:
+        if not details:
+            return []
+        posts = details.get("latestPosts") or details.get("latest_posts")
+        if not isinstance(posts, list):
+            return []
+        return [post for post in posts if isinstance(post, dict)]
 
     async def _run_actor(self, direct_url: str, results_type: str, results_limit: int) -> list[dict[str, Any]]:
         own_client = self.http_client is None
@@ -266,6 +283,11 @@ class ApifyInstagramProvider:
         if not values:
             return 0
         return int(sum(values) / len(values))
+
+    @staticmethod
+    def _is_timeout_error(exc: ProviderConfigurationError) -> bool:
+        message = str(exc).lower()
+        return "timed-out" in message or "timed out" in message or "timeout" in message
 
     @staticmethod
     def _viral_score(post: InstagramPostData) -> float:
